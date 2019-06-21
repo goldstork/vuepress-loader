@@ -19,6 +19,8 @@ export default function loader(source) {
 		validateOptions(schema, options, 'VuePress Loader')
 	
 		const context = options.context || this.rootContext
+
+		console.log('NAME: ', `${options.name}\n`)
 	
 		const url = loaderUtils.interpolateName(this, options.name, {
 			context,
@@ -27,6 +29,8 @@ export default function loader(source) {
 		})
 	
 		let outputPath = url
+
+		console.log('outputPath: ', `${outputPath}\n`)
 	
 		if (options.outputPath) {
 			if (typeof options.outputPath === 'function') {
@@ -38,6 +42,7 @@ export default function loader(source) {
 		
 		const componentData = parse(source.toString('utf8'))
 	
+		console.log('outputPath in writeble: ', JSON.stringify(outputPath))
 		const writeable = fs.createWriteStream(JSON.stringify(outputPath))
 	
 		writeable.on('error', err => {

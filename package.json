@@ -12,7 +12,11 @@
   "scripts": {
     "start": "npm run build -- -w",
     "build": "cross-env NODE_ENV=production babel src -d dist --ignore \"src/**/*.test.js\" --copy-files",
-    "clean": "del-cli dist"
+    "clean": "del-cli dist",
+    "test:only": "cross-env NODE_ENV=test jest",
+    "test:watch": "cross-env NODE_ENV=test jest --watch",
+    "test:coverage": "cross-env NODE_ENV=test jest --collectCoverageFrom=\"src/**/*.js\" --coverage",
+    "test": "cross-env NODE_ENV=test npm run test:coverage"
   },
   "author": "IERomanov",
   "license": "ISC",
@@ -20,9 +24,14 @@
     "@babel/cli": "^7.4.4",
     "@babel/core": "^7.4.5",
     "@babel/preset-env": "^7.4.5",
+    "babel-jest": "^24.8.0",
     "cross-env": "^5.2.0",
+    "del": "^4.1.1",
     "del-cli": "^2.0.0",
-    "ora": "^3.4.0"
+    "jest": "^24.8.0",
+    "memory-fs": "^0.4.1",
+    "ora": "^3.4.0",
+    "webpack": "^4.35.0"
   },
   "dependencies": {
     "@vuedoc/parser": "^2.0.0-beta.4",
