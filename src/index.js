@@ -24,7 +24,7 @@ export default function loader(source) {
 	
 		const url = loaderUtils.interpolateName(this, options.name, {
 			context,
-			content: source.toString('utf8'),
+			content: source,
 			regExp: options.regExp,
 		})
 	
@@ -59,7 +59,7 @@ export default function loader(source) {
 		const componentKeys = []
 		JSON.parse(componentData).keys().forEach(key => componentKeys.push(key))
 		
-		componentKeys.forEach(key => writeable.write(`${key}\n`));
+		componentKeys.forEach(key => writeable.write('test'));
 		writeable.end()
 	} catch (err) {
 		process.stdout.cursorTo(0);
