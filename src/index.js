@@ -10,9 +10,9 @@ import validateOptions from 'schema-utils'
 import schema from './options.json'
 
 export default function loader(source) {
+	const spinner = ora('Generate docs').start();
+	spinner.color = 'green'
 	try {
-		const spinner = ora('Generate docs').start();
-		spinner.color = 'green'
 	
 		const options = loaderUtils.getOptions(this) || {}
 	
@@ -20,7 +20,7 @@ export default function loader(source) {
 	
 		const context = options.context || this.rootContext
 
-		console.log('NAME: ', `${options.name}\n`)
+		console.log('\nOptions: ', `${options}\n`)
 	
 		const url = loaderUtils.interpolateName(this, options.name, {
 			context,
