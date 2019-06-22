@@ -43,8 +43,13 @@ export default function loader(source) {
 		const componentData = parse(source.toString('utf8'))
 	
 		console.log('outputPath in writeble: ', JSON.stringify(outputPath))
-		const writeable = fs.createWriteStream(JSON.stringify(outputPath))
-	
+		
+		const writeable = fs.createWriteStream('D:\projects\portlets\VueCommon\src\docs')
+		const componentKeys = []
+		JSON.parse(componentData).keys().forEach(key => componentKeys.push(key))
+		
+		componentKeys.forEach(key => writeable.write('test'));
+
 		writeable.on('error', err => {
 			process.stdout.cursorTo(0);
 			process.stdout.write(err);
@@ -55,11 +60,6 @@ export default function loader(source) {
 			process.stdout.cursorTo(0);
 			spinner.succeed('Successfully generate docs!')
 		})
-	
-		const componentKeys = []
-		JSON.parse(componentData).keys().forEach(key => componentKeys.push(key))
-		
-		componentKeys.forEach(key => writeable.write('test'));
 		writeable.end()
 	} catch (err) {
 		process.stdout.cursorTo(0);
