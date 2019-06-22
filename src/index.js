@@ -12,26 +12,21 @@ import schema from './options.json'
 export default function loader(source) {
 	const spinner = ora('Generate docs').start();
 	spinner.color = 'green'
+
 	try {
-	
-		const options = loaderUtils.getOptions(this) || {}
-	
+		const options = loaderUtils.getOptions(this) || {}	
 		validateOptions(schema, options, 'VuePress Loader')
 	
 		const context = options.context || this.rootContext
 
-		console.log('\nOptions: ', `${options}\n`)
-	
 		const url = loaderUtils.interpolateName(this, options.name, {
 			context,
 			content: source,
 			regExp: options.regExp,
 		})
-	
+
 		let outputPath = url
 
-		console.log('outputPath: ', `${outputPath}\n`)
-	
 		if (options.outputPath) {
 			if (typeof options.outputPath === 'function') {
 				outputPath = options.outputPath(url, this.resourcePath, context)
@@ -39,12 +34,13 @@ export default function loader(source) {
 				outputPath = path.posix.join(options.outputPath, url)
 			}
 		}
-		
+
 		const componentData = parse(source.toString('utf8'))
-	
-		console.log('outputPath in writeble: ', JSON.stringify(outputPath))
-		
-		const writeable = fs.createWriteStream('D:\projects\portlets\VueCommon\src\docs')
+
+		if (fs.existsSync(outputPath)) {
+			fs.mkdirSync(outputPath);
+		}
+		const writeable = fs.createWriteStream(outputPath)
 		const componentKeys = []
 		JSON.parse(componentData).keys().forEach(key => componentKeys.push(key))
 		
@@ -63,8 +59,10 @@ export default function loader(source) {
 		writeable.end()
 	} catch (err) {
 		process.stdout.cursorTo(0);
-		process.stdout.write(err);
-		spinner.fail('Docs generation faild!')
+		console.log("Error: ", err)
+		spinner.fail('Docs generation faild!');
+		spinner.stop();
+		process.exit(1);
 	}
 }
 
