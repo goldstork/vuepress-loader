@@ -24,7 +24,7 @@ var _options = _interopRequireDefault(require("./options.json"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function loader(source) {
+async function loader(source) {
   const spinner = (0, _ora.default)('Generate docs').start();
   spinner.color = 'green';
 
@@ -32,6 +32,10 @@ function loader(source) {
     const options = _loaderUtils.default.getOptions(this) || {};
     (0, _schemaUtils.default)(_options.default, options, 'VuePress Loader');
     const context = options.context || this.rootContext;
+
+    if (!_fs.default.existsSync(options.outputPath)) {
+      _fs.default.mkdirSync(options.outputPath);
+    }
 
     const url = _loaderUtils.default.interpolateName(this, options.name, {
       context,
@@ -49,17 +53,15 @@ function loader(source) {
       }
     }
 
-    const componentData = (0, _parser.parse)(source.toString('utf8'));
+    const componentData = await (0, _parser.parse)({
+      filecontent: source.toString('utf8')
+    });
 
-    if (_fs.default.existsSync(outputPath)) {
-      _fs.default.mkdirSync(outputPath);
-    }
+    const writeable = _fs.default.createWriteStream(outputPath, {
+      flags: 'w'
+    });
 
-    const writeable = _fs.default.createWriteStream(outputPath);
-
-    const componentKeys = [];
-    JSON.parse(componentData).keys().forEach(key => componentKeys.push(key));
-    componentKeys.forEach(key => writeable.write('test'));
+    Object.keys(componentData).forEach(key => writeable.write(`#${key}\n`));
     writeable.on('error', err => {
       process.stdout.cursorTo(0);
       process.stdout.write(err);
@@ -68,6 +70,7 @@ function loader(source) {
     writeable.on('end', () => {
       process.stdout.cursorTo(0);
       spinner.succeed('Successfully generate docs!');
+      process.exit(0);
     });
     writeable.end();
   } catch (err) {

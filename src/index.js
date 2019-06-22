@@ -9,7 +9,7 @@ import validateOptions from 'schema-utils'
 
 import schema from './options.json'
 
-export default function loader(source) {
+export default async function loader(source) {
 	const spinner = ora('Generate docs').start();
 	spinner.color = 'green'
 
@@ -18,6 +18,10 @@ export default function loader(source) {
 		validateOptions(schema, options, 'VuePress Loader')
 	
 		const context = options.context || this.rootContext
+
+		if (!fs.existsSync(options.outputPath)) {
+			fs.mkdirSync(options.outputPath);
+		}
 
 		const url = loaderUtils.interpolateName(this, options.name, {
 			context,
@@ -35,16 +39,14 @@ export default function loader(source) {
 			}
 		}
 
-		const componentData = parse(source.toString('utf8'))
+		const componentData = await parse({filecontent: source.toString('utf8')})
 
-		if (fs.existsSync(outputPath)) {
-			fs.mkdirSync(outputPath);
-		}
-		const writeable = fs.createWriteStream(outputPath)
-		const componentKeys = []
-		JSON.parse(componentData).keys().forEach(key => componentKeys.push(key))
 		
-		componentKeys.forEach(key => writeable.write('test'));
+		const writeable = fs.createWriteStream(outputPath, {
+			flags: 'w'
+		})
+
+		Object.keys(componentData).forEach(key => writeable.write(`#${key}\n`));
 
 		writeable.on('error', err => {
 			process.stdout.cursorTo(0);
@@ -55,6 +57,7 @@ export default function loader(source) {
 		writeable.on('end', () => {
 			process.stdout.cursorTo(0);
 			spinner.succeed('Successfully generate docs!')
+			process.exit(0);
 		})
 		writeable.end()
 	} catch (err) {
