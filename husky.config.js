@@ -1,6 +1,6 @@
 module.exports = {
 	hooks: {
-		'pre-commit': 'npm run test && npm run build',
+		'pre-commit': 'npm run test',
 		'pre-push': 'git pull origin master'
 	},
 }

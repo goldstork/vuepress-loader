@@ -32,7 +32,6 @@ function loader(source) {
     const options = _loaderUtils.default.getOptions(this) || {};
     (0, _schemaUtils.default)(_options.default, options, 'VuePress Loader');
     const context = options.context || this.rootContext;
-    console.log('\nOptions: ', `${options.toString()}\n`);
 
     const url = _loaderUtils.default.interpolateName(this, options.name, {
       context,
@@ -41,7 +40,6 @@ function loader(source) {
     });
 
     let outputPath = url;
-    console.log('outputPath: ', `${outputPath}\n`);
 
     if (options.outputPath) {
       if (typeof options.outputPath === 'function') {
@@ -52,9 +50,12 @@ function loader(source) {
     }
 
     const componentData = (0, _parser.parse)(source.toString('utf8'));
-    console.log('outputPath in writeble: ', JSON.stringify(outputPath));
 
-    const writeable = _fs.default.createWriteStream(out);
+    if (_fs.default.existsSync(outputPath)) {
+      _fs.default.mkdirSync(outputPath);
+    }
+
+    const writeable = _fs.default.createWriteStream(outputPath);
 
     const componentKeys = [];
     JSON.parse(componentData).keys().forEach(key => componentKeys.push(key));
@@ -71,7 +72,7 @@ function loader(source) {
     writeable.end();
   } catch (err) {
     process.stdout.cursorTo(0);
-    process.stdout.write(err);
+    console.log("Error: ", err);
     spinner.fail('Docs generation faild!');
     spinner.stop();
     process.exit(1);
