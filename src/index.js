@@ -26,8 +26,8 @@ export default async function loader(source) {
 		validateOptions(schema, options, 'VuePress Loader')
 
 		if (!fs.existsSync(options.outputPath)) fs.mkdirSync(options.outputPath);
-		if (!fs.existsSync(path.resolve(options.outputPath, 'README.md'))) mainReadmeCreated = await createMainReadme(options)
-		if (!fs.existsSync(path.resolve(options.outputPath, '.vuepress/config.js'))) initConfigCreated = await initConfig(options)
+		if (!fs.existsSync(path.resolve(options.outputPath, 'README.md'))) mainReadmeCreated = await createMainReadme(options, this)
+		if (!fs.existsSync(path.resolve(options.outputPath, '.vuepress/config.js'))) initConfigCreated = await initConfig(options, this)
 
 		const outputPath = genOutputPath(options, this)
 

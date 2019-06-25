@@ -40,8 +40,8 @@ async function loader(source) {
     let initConfigCreated;
     (0, _schemaUtils.default)(_options.default, options, 'VuePress Loader');
     if (!_fs.default.existsSync(options.outputPath)) _fs.default.mkdirSync(options.outputPath);
-    if (!_fs.default.existsSync(_path.default.resolve(options.outputPath, 'README.md'))) mainReadmeCreated = await (0, _createMainReadme.default)(options);
-    if (!_fs.default.existsSync(_path.default.resolve(options.outputPath, '.vuepress/config.js'))) initConfigCreated = await (0, _initConfig.default)(options);
+    if (!_fs.default.existsSync(_path.default.resolve(options.outputPath, 'README.md'))) mainReadmeCreated = await (0, _createMainReadme.default)(options, this);
+    if (!_fs.default.existsSync(_path.default.resolve(options.outputPath, '.vuepress/config.js'))) initConfigCreated = await (0, _initConfig.default)(options, this);
     const outputPath = (0, _genOutputPath.default)(options, this);
     const componentData = await (0, _parser.parse)({
       filecontent: source.toString('utf8')
