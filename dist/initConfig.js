@@ -15,9 +15,9 @@ var _genOutputPath = _interopRequireDefault(require("./genOutputPath"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _default(options) {
+function _default(options, ctx) {
   return new Promise((resolve, reject) => {
-    const outputPath = (0, _genOutputPath.default)(options, '.vuepress/config.js');
+    const outputPath = (0, _genOutputPath.default)(options, ctx, '.vuepress/config.js');
 
     const writeable = _fs.default.createWriteStream(outputPath, {
       flags: 'w'

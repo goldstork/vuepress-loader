@@ -29,7 +29,7 @@ export default async function loader(source) {
 		if (!fs.existsSync(path.resolve(options.outputPath, 'README.md'))) mainReadmeCreated = await createMainReadme(options)
 		if (!fs.existsSync(path.resolve(options.outputPath, '.vuepress/config.js'))) initConfigCreated = await initConfig(options)
 
-		const outputPath = genOutputPath(options)
+		const outputPath = genOutputPath(options, this)
 
 		const componentData = await parse({filecontent: source.toString('utf8')})
 

@@ -3,9 +3,9 @@ import fs from 'fs'
 import path from 'path'
 import genOutputPath from './genOutputPath'
 
-export default function (options) {
+export default function (options, ctx) {
 	return new Promise((resolve, reject) => {
-		const outputPath = genOutputPath(options, 'README.md')
+		const outputPath = genOutputPath(options, ctx, 'README.md')
 		const writeable = fs.createWriteStream(outputPath, {
 			flags: 'w'
 		})

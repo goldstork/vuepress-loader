@@ -3,9 +3,9 @@ import fs from 'fs'
 import path from 'path'
 import genOutputPath from './genOutputPath'
 
-export default function (options) {
+export default function (options, ctx) {
 	return new Promise((resolve, reject) => {
-		const outputPath = genOutputPath(options, '.vuepress/config.js')
+		const outputPath = genOutputPath(options, ctx, '.vuepress/config.js')
 		const writeable = fs.createWriteStream(outputPath, {
 			flags: 'w'
 		})
