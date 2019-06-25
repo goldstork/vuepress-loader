@@ -9,39 +9,30 @@ import validateOptions from 'schema-utils'
 
 import schema from './options.json'
 
+import genOutputPath from './genOutputPath'
+import createMainReadme from './createMainReadme.js'
+import initConfig from './initConfig.js';
+
 export default async function loader(source) {
 	const spinner = ora('Generate docs').start();
 	spinner.color = 'green'
 
 	try {
-		const options = loaderUtils.getOptions(this) || {}	
+		const options = loaderUtils.getOptions(this) || {}
+
+		let mainReadmeCreated
+		let initConfigCreated
+
 		validateOptions(schema, options, 'VuePress Loader')
-	
-		const context = options.context || this.rootContext
 
-		if (!fs.existsSync(options.outputPath)) {
-			fs.mkdirSync(options.outputPath);
-		}
+		if (!fs.existsSync(options.outputPath)) fs.mkdirSync(options.outputPath);
+		if (!fs.existsSync(path.resolve(options.outputPath, 'README.md'))) mainReadmeCreated = await createMainReadme(options)
+		if (!fs.existsSync(path.resolve(options.outputPath, '.vuepress/config.js'))) initConfigCreated = await initConfig(options)
 
-		const url = loaderUtils.interpolateName(this, options.name, {
-			context,
-			content: source,
-			regExp: options.regExp,
-		})
-
-		let outputPath = url
-
-		if (options.outputPath) {
-			if (typeof options.outputPath === 'function') {
-				outputPath = options.outputPath(url, this.resourcePath, context)
-			} else {
-				outputPath = path.posix.join(options.outputPath, url)
-			}
-		}
+		const outputPath = genOutputPath(options)
 
 		const componentData = await parse({filecontent: source.toString('utf8')})
 
-		
 		const writeable = fs.createWriteStream(outputPath, {
 			flags: 'w'
 		})
@@ -64,7 +55,6 @@ export default async function loader(source) {
 		process.stdout.cursorTo(0);
 		console.log("Error: ", err)
 		spinner.fail('Docs generation faild!');
-		spinner.stop();
 		process.exit(1);
 	}
 }

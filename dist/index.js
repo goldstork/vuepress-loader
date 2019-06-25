@@ -22,6 +22,12 @@ var _schemaUtils = _interopRequireDefault(require("schema-utils"));
 
 var _options = _interopRequireDefault(require("./options.json"));
 
+var _genOutputPath = _interopRequireDefault(require("./genOutputPath"));
+
+var _createMainReadme = _interopRequireDefault(require("./createMainReadme.js"));
+
+var _initConfig = _interopRequireDefault(require("./initConfig.js"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 async function loader(source) {
@@ -30,29 +36,13 @@ async function loader(source) {
 
   try {
     const options = _loaderUtils.default.getOptions(this) || {};
+    let mainReadmeCreated;
+    let initConfigCreated;
     (0, _schemaUtils.default)(_options.default, options, 'VuePress Loader');
-    const context = options.context || this.rootContext;
-
-    if (!_fs.default.existsSync(options.outputPath)) {
-      _fs.default.mkdirSync(options.outputPath);
-    }
-
-    const url = _loaderUtils.default.interpolateName(this, options.name, {
-      context,
-      content: source,
-      regExp: options.regExp
-    });
-
-    let outputPath = url;
-
-    if (options.outputPath) {
-      if (typeof options.outputPath === 'function') {
-        outputPath = options.outputPath(url, this.resourcePath, context);
-      } else {
-        outputPath = _path.default.posix.join(options.outputPath, url);
-      }
-    }
-
+    if (!_fs.default.existsSync(options.outputPath)) _fs.default.mkdirSync(options.outputPath);
+    if (!_fs.default.existsSync(_path.default.resolve(options.outputPath, 'README.md'))) mainReadmeCreated = await (0, _createMainReadme.default)(options);
+    if (!_fs.default.existsSync(_path.default.resolve(options.outputPath, '.vuepress/config.js'))) initConfigCreated = await (0, _initConfig.default)(options);
+    const outputPath = (0, _genOutputPath.default)(options);
     const componentData = await (0, _parser.parse)({
       filecontent: source.toString('utf8')
     });
@@ -77,7 +67,6 @@ async function loader(source) {
     process.stdout.cursorTo(0);
     console.log("Error: ", err);
     spinner.fail('Docs generation faild!');
-    spinner.stop();
     process.exit(1);
   }
 }
