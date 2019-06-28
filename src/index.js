@@ -9,53 +9,84 @@ import validateOptions from 'schema-utils'
 
 import schema from './options.json'
 
-import genOutputPath from './genOutputPath'
-import createMainReadme from './createMainReadme.js'
-import initConfig from './initConfig.js';
+const ReadmeFile = `
+---
+home: true
+actionText: Start
+actionLink: 
+features:
+- title: TEST
+details: A Vue counter developed using Vue is embedded in this doc, now that's the power of VuePress!
+- title: TEST
+details: This entire doc was basically made with VuePress which parsed markdown files and corresponding assets using webpack.
+footer: TEST IERomanov TEST
+---`
+
+const ConfigFile = `
+module.exports = {
+	title: 'Test VuePress Docs generation',
+	description: "TryTryTryTryTryTryTry",
+	themeConfig:{
+		nav: [
+			{ text: 'Components', link: '/components/' },
+		],
+		sidebar: [
+			{
+				title: 'Home',
+				collapsable: false,
+				children: [
+					'/'
+				]
+			},
+			{
+				title: 'Counter',
+				collapsable: false,
+				children: [
+					'/components'
+				]
+			}
+		]
+	}
+}`
+
+const appRootPath = process.cwd()
 
 export default async function loader(source) {
-	const spinner = ora('Generate docs').start();
+	const spinner = ora('Generate docs').start()
 	spinner.color = 'green'
 
 	try {
 		const options = loaderUtils.getOptions(this) || {}
-
-		let mainReadmeCreated
-		let initConfigCreated
+		const context = options.context || this.rootContext
+		const fileName = loaderUtils.interpolateName(this, options.name, { context })
 
 		validateOptions(schema, options, 'VuePress Loader')
 
-		if (!fs.existsSync(options.outputPath)) fs.mkdirSync(options.outputPath);
-		if (!fs.existsSync(path.resolve(options.outputPath, 'README.md'))) mainReadmeCreated = await createMainReadme(options, this)
-		if (!fs.existsSync(path.resolve(options.outputPath, '.vuepress/config.js'))) initConfigCreated = await initConfig(options, this)
+		await Promise.all([
+			// Create root docs folder
+			createFolder(options.outputPath),
+			// Create folder for components
+			createFolder(`${options.outputPath}/components`),
+			// Create .vuepress folder for config
+			createFolder(`${options.outputPath}/.vuepress`),
 
-		const outputPath = genOutputPath(options, this)
+			// Create default config files
+			createFile(options.outputPath, 'README.md', ReadmeFile),
+			createFile([options.outputPath, '.vuepress'], 'config.js', ConfigFile),
+		])
 
-		const componentData = await parse({filecontent: source.toString('utf8')})
+		const componentData = await parse({ filecontent: source.toString('utf8') })
 
-		const writeable = fs.createWriteStream(outputPath, {
-			flags: 'w'
-		})
-
-		Object.keys(componentData).forEach(key => writeable.write(`#${key}\n`));
-
-		writeable.on('error', err => {
-			process.stdout.cursorTo(0);
-			process.stdout.write(err);
-			spinner.fail('Docs generation faild!!!')
-		})
-	
-		writeable.on('end', () => {
-			process.stdout.cursorTo(0);
-			spinner.succeed('Successfully generate docs!')
-			process.exit(0);
-		})
-		writeable.end()
+		createFile(
+			[options.outputPath, 'components'],
+			fileName,
+			JSON.stringify(componentData, null, 4)
+		)
 	} catch (err) {
-		process.stdout.cursorTo(0);
-		console.log("Error: ", err)
-		spinner.fail('Docs generation faild!');
-		process.exit(1);
+		process.stdout.cursorTo(0)
+		console.error('\nError: ', err)
+		spinner.fail('Docs generation faild!')
+		process.exit(1)
 	}
 }
 

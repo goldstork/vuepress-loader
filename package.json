@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@vuedoc/parser": "^2.0.0-beta.4",
+    "app-root-path": "^2.2.1",
     "loader-utils": "^1.2.3",
     "schema-utils": "^1.0.0"
   }
