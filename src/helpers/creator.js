@@ -1,3 +1,7 @@
+import stream from 'stream'
+import fs from 'fs'
+import path from 'path'
+
 import requiredArg from "./requiredArg"
 import checkPathToExist from "./checkPathToExist"
 

@@ -5,6 +5,12 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.createFile = exports.createFolder = void 0;
 
+var _stream = _interopRequireDefault(require("stream"));
+
+var _fs = _interopRequireDefault(require("fs"));
+
+var _path = _interopRequireDefault(require("path"));
+
 var _requiredArg = _interopRequireDefault(require("./requiredArg"));
 
 var _checkPathToExist = _interopRequireDefault(require("./checkPathToExist"));
@@ -15,10 +21,10 @@ const createFolder = (pathToFolder = requireArg('pathToFolder')) => new Promise(
   let outputPath;
 
   if (Array.isArray(pathToFolder)) {
-    outputPath = path.resolve(...pathToFolder.filter(path => typeof path === 'string'));
+    outputPath = _path.default.resolve(...pathToFolder.filter(path => typeof path === 'string'));
   } else if (typeof pathToFolder === 'string') {
-    if (!fs.existsSync(pathToFolder)) {
-      fs.mkdirSync(pathToFolder, {
+    if (!_fs.default.existsSync(pathToFolder)) {
+      _fs.default.mkdirSync(pathToFolder, {
         recursive: true
       });
     }
@@ -38,18 +44,19 @@ const createFile = (pathToFolder = requireArg('pathToFolder'), filename = requir
   let outputPath;
 
   if (Array.isArray(pathToFolder)) {
-    outputPath = path.resolve(...pathToFolder.filter(path => typeof path === 'string'), filename);
+    outputPath = _path.default.resolve(...pathToFolder.filter(path => typeof path === 'string'), filename);
   } else if (typeof pathToFolder === 'string') {
-    (0, _checkPathToExist.default)(pathToFolder) ? outputPath = path.resolve(pathToFolder, filename) : reject(`${pathToFolder} not exist!`);
+    (0, _checkPathToExist.default)(pathToFolder) ? outputPath = _path.default.resolve(pathToFolder, filename) : reject(`${pathToFolder} not exist!`);
   } else {
     reject();
   }
 
   if ((0, _checkPathToExist.default)(outputPath)) resolve(true); // ToDo: change it
 
-  const writeable = fs.createWriteStream(outputPath, {
+  const writeable = _fs.default.createWriteStream(outputPath, {
     flags: 'w'
   });
+
   writeable.write(fileSource);
   writeable.on('error', err => {
     reject(new Error(err)); // ToDo: change it

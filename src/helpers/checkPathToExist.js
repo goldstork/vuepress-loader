@@ -1,3 +1,5 @@
+import fs from 'fs'
+
 import requiredArg from "./requiredArg"
 
 export default (path = requireArg('path')) =>
