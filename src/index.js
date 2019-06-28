@@ -2,12 +2,12 @@ import stream from 'stream'
 import fs from 'fs'
 import path from 'path'
 import { parse } from '@vuedoc/parser'
-import ora from 'ora'
 
 import loaderUtils from 'loader-utils'
 import validateOptions from 'schema-utils'
 
 import schema from './options.json'
+import { createFile, createFolder } from './helpers/creator.js';
 
 const ReadmeFile = `
 ---
@@ -52,9 +52,6 @@ module.exports = {
 const appRootPath = process.cwd()
 
 export default async function loader(source) {
-	const spinner = ora('Generate docs').start()
-	spinner.color = 'green'
-
 	try {
 		const options = loaderUtils.getOptions(this) || {}
 		const context = options.context || this.rootContext
@@ -85,7 +82,6 @@ export default async function loader(source) {
 	} catch (err) {
 		process.stdout.cursorTo(0)
 		console.error('\nError: ', err)
-		spinner.fail('Docs generation faild!')
 		process.exit(1)
 	}
 }

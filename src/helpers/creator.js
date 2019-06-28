@@ -1,3 +1,6 @@
+import requiredArg from "./requiredArg"
+import checkPathToExist from "./checkPathToExist"
+
 export const createFolder = (pathToFolder = requireArg('pathToFolder')) =>
 	new Promise((resolve, reject) => {
 		let outputPath
