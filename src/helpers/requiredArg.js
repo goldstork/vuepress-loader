@@ -1,3 +1,3 @@
-export default (name = 'this') => {
+export default (name = 'this', type) => {
 	throw new Error(`"${name}" argument required.`)
 }

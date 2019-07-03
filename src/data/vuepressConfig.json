@@ -1,0 +1,17 @@
+{
+	"title": "Test VuePress Docs generation",
+	"description": "TryTryTryTryTryTryTry",
+	"themeConfig":{
+		"logo": "/assets/img/logo.png",
+		"nav": [
+			{ 
+				"text": "Components",
+				"link": "/components/"
+			}
+		],
+		"sidebar": [],
+		"displayAllHeaders": false,
+		"activeHeaderLinks": true,
+		"lastUpdated": true
+	}
+}

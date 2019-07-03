@@ -1,0 +1,12 @@
+{
+	"input": {
+		"name": "Test",
+		"description": "Description for test",
+		"prop": [1.1, 2.4, 3.6]
+	},
+	"output": {
+		"name": "TEST",
+		"description": "DESCRIPTION FOR TEST",
+		"prop": [1, 2, 4]
+	}
+}

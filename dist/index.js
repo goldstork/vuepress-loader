@@ -22,6 +22,12 @@ var _options = _interopRequireDefault(require("./options.json"));
 
 var _creator = require("./helpers/creator.js");
 
+var _configurator = _interopRequireDefault(require("./helpers/configurator.js"));
+
+var _checkPathToExist = _interopRequireDefault(require("./helpers/checkPathToExist.js"));
+
+var _configuratorMethods = require("./constant/configuratorMethods");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 const ReadmeFile = `
@@ -36,32 +42,6 @@ details: A Vue counter developed using Vue is embedded in this doc, now that's t
 details: This entire doc was basically made with VuePress which parsed markdown files and corresponding assets using webpack.
 footer: TEST IERomanov TEST
 ---`;
-const ConfigFile = `
-module.exports = {
-	title: 'Test VuePress Docs generation',
-	description: "TryTryTryTryTryTryTry",
-	themeConfig:{
-		nav: [
-			{ text: 'Components', link: '/components/' },
-		],
-		sidebar: [
-			{
-				title: 'Home',
-				collapsable: false,
-				children: [
-					'/'
-				]
-			},
-			{
-				title: 'Counter',
-				collapsable: false,
-				children: [
-					'/components'
-				]
-			}
-		]
-	}
-}`;
 const appRootPath = process.cwd();
 
 async function loader(source) {
@@ -76,13 +56,15 @@ async function loader(source) {
     (0, _schemaUtils.default)(_options.default, options, 'VuePress Loader');
     await Promise.all([// Create root docs folder
     (0, _creator.createFolder)(options.outputPath), // Create folder for components
-    (0, _creator.createFolder)(`${options.outputPath}/components`), // Create .vuepress folder for config
-    (0, _creator.createFolder)(`${options.outputPath}/.vuepress`), // Create default config files
-    (0, _creator.createFile)(options.outputPath, 'README.md', ReadmeFile), (0, _creator.createFile)([options.outputPath, '.vuepress'], 'config.js', ConfigFile)]);
+    (0, _creator.createFolder)([options.outputPath, 'components']), // Create .vuepress folder for config
+    (0, _creator.createFolder)([options.outputPath, '.vuepress']), // Create default config files
+    (0, _creator.createFile)(options.outputPath, 'README.md', ReadmeFile)]);
     const componentData = await (0, _parser.parse)({
       filecontent: source.toString('utf8')
-    });
-    (0, _creator.createFile)([options.outputPath, 'components'], fileName, JSON.stringify(componentData, null, 4));
+    }); // Gen and update default config
+
+    (0, _configurator.default)([options.outputPath, '.vuepress', 'config.js'], _configuratorMethods.ADD_TO_SIDEBAR);
+    await (0, _creator.createFile)([options.outputPath, 'components'], fileName, JSON.stringify(componentData, null, 4));
   } catch (err) {
     process.stdout.cursorTo(0);
     console.error('\nError: ', err);

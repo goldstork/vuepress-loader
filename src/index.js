@@ -7,7 +7,11 @@ import loaderUtils from 'loader-utils'
 import validateOptions from 'schema-utils'
 
 import schema from './options.json'
-import { createFile, createFolder } from './helpers/creator.js';
+import { createFile, createFolder } from './helpers/creator.js'
+import Configurator from './helpers/configurator.js'
+import checkPathToExist from './helpers/checkPathToExist.js'
+import configurator from './helpers/configurator.js'
+import { ADD_TO_SIDEBAR } from './constant/configuratorMethods'
 
 const ReadmeFile = `
 ---
@@ -21,33 +25,6 @@ details: A Vue counter developed using Vue is embedded in this doc, now that's t
 details: This entire doc was basically made with VuePress which parsed markdown files and corresponding assets using webpack.
 footer: TEST IERomanov TEST
 ---`
-
-const ConfigFile = `
-module.exports = {
-	title: 'Test VuePress Docs generation',
-	description: "TryTryTryTryTryTryTry",
-	themeConfig:{
-		nav: [
-			{ text: 'Components', link: '/components/' },
-		],
-		sidebar: [
-			{
-				title: 'Home',
-				collapsable: false,
-				children: [
-					'/'
-				]
-			},
-			{
-				title: 'Counter',
-				collapsable: false,
-				children: [
-					'/components'
-				]
-			}
-		]
-	}
-}`
 
 const appRootPath = process.cwd()
 
@@ -63,18 +40,21 @@ export default async function loader(source) {
 			// Create root docs folder
 			createFolder(options.outputPath),
 			// Create folder for components
-			createFolder(`${options.outputPath}/components`),
+			createFolder([options.outputPath, 'components']),
 			// Create .vuepress folder for config
-			createFolder(`${options.outputPath}/.vuepress`),
+			createFolder([options.outputPath, '.vuepress']),
 
 			// Create default config files
 			createFile(options.outputPath, 'README.md', ReadmeFile),
-			createFile([options.outputPath, '.vuepress'], 'config.js', ConfigFile),
+			// createFile([options.outputPath, '.vuepress'], 'config.js', ConfigFile),
 		])
 
 		const componentData = await parse({ filecontent: source.toString('utf8') })
 
-		createFile(
+		// Gen and update default config
+		configurator([options.outputPath, '.vuepress', 'config.js'], ADD_TO_SIDEBAR)
+
+		await createFile(
 			[options.outputPath, 'components'],
 			fileName,
 			JSON.stringify(componentData, null, 4)
