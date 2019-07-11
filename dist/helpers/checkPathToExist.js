@@ -13,14 +13,14 @@ var _arrayPathToString = _interopRequireDefault(require("./arrayPathToString"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var _default = (path = requireArg('path')) => new Promise((resolve, reject) => {
+var _default = (path = requireArg('path')) => {
   if (Array.isArray(path)) {
-    resolve(!_fs.default.existsSync((0, _arrayPathToString.default)(path)));
+    return _fs.default.existsSync((0, _arrayPathToString.default)(path));
   } else if (typeof path === 'string') {
-    resolve(!_fs.default.existsSync(path));
+    return _fs.default.existsSync(path);
   }
 
   throw new Error('The argument was expected to be type "String" or "Array<String>".');
-});
+};
 
 exports.default = _default;

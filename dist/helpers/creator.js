@@ -19,49 +19,41 @@ var _arrayPathToString = _interopRequireDefault(require("./arrayPathToString"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-const createFolderByStringPath = (pathToFolder = requireArg('pathToFolder')) => new Promise((resolve, reject) => {
-  try {
-    if (!_fs.default.existsSync(pathToFolder)) {
-      _fs.default.mkdirSync(pathToFolder, {
-        recursive: true
-      });
-    }
-
-    resolve(pathToFolder);
-  } catch (err) {
-    reject(err);
-  }
-});
-
-const createFolder = (pathToFolder = requireArg('pathToFolder')) => new Promise((resolve, reject) => {
+const createFolder = (pathToFolder = requireArg('pathToFolder')) => {
   let outputPath;
 
   if (!(0, _checkPathToExist.default)(pathToFolder)) {
-    outputPath = createFolderByStringPath(pathToFolder);
+    if (typeof pathToFolder === 'string') {
+      _fs.default.mkdirSync(pathToFolder, {
+        recursive: true
+      });
+
+      outputPath = pathToFolder;
+    } else {
+      throw new Error('Expected string argument');
+    }
+  } else {
+    outputPath = pathToFolder;
   }
 
-  if (outputPath && (0, _checkPathToExist.default)(outputPath)) resolve(true); // ToDo: change it
-  else reject(`Unknown error! ${outputPath} not created`);
-});
+  return outputPath;
+};
 
 exports.createFolder = createFolder;
 
-const createFile = (pathToFolder = requireArg('pathToFolder'), filename = requireArg('filename'), fileSource = requireArg('fileSource')) => new Promise((resolve, reject) => {
+const createFile = (pathToFolder = requireArg('pathToFolder'), filename = requireArg('filename'), fileSource = requireArg('fileSource')) => {
   let outputPath;
-  !(0, _checkPathToExist.default)(pathToFolder) && createFolderByStringPath(pathToFolder);
-  outputPath = _path.default.resolve(pathToFolder, filename);
-  if ((0, _checkPathToExist.default)(outputPath)) resolve(true); // ToDo: change it
+  const pathToFile = `${pathToFolder}/${filename}`;
 
-  const writable = _fs.default.createWriteStream(outputPath, {
-    flags: 'w'
-  });
+  if ((0, _checkPathToExist.default)(pathToFolder) && typeof pathToFile === 'string') {
+    outputPath = _path.default.parse(pathToFile);
+  } else {
+    throw new Error('Path not exist or expected string argument');
+  }
 
-  writable.write(fileSource);
-  writable.on('error', err => {
-    reject(new Error(err)); // ToDo: change it
-  });
-  writable.end();
-  resolve(true); // ToDo: change it
-});
+  _fs.default.writeFileSync(`${outputPath.dir}/${outputPath.base}`, fileSource);
+
+  return outputPath;
+};
 
 exports.createFile = createFile;

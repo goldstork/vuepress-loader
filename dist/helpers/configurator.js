@@ -15,25 +15,22 @@ var _creator = require("./creator");
 
 var _Transformer = _interopRequireDefault(require("./Transformer"));
 
-var _configuratorMethods = require("../constant/configuratorMethods");
-
 var _arrayPathToString = _interopRequireDefault(require("./arrayPathToString"));
+
+var _addDataToObject = _interopRequireDefault(require("./addDataToObject"));
+
+var _stream = require("stream");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var _default = (pathToFile, method) => {
+var _default = async pathToFile => {
+  let pathInfo;
+
   if (Array.isArray(pathToFile)) {
-    const pathInfo = _path.default.parse((0, _arrayPathToString.default)(pathToFile));
-
     pathToFile = (0, _arrayPathToString.default)(pathToFile);
-  } else if (typeof pathToFile === 'string') {
-    const pathInfo = _path.default.parse(pathToFile);
+    pathInfo = _path.default.parse(pathToFile);
   } else {
-    throw new Error('The argument "pathToFile" was expected to be type "String" or "Array<String>".');
-  }
-
-  if (!(0, _checkPathToExist.default)(pathInfo.dir)) {
-    (0, _creator.createFolder)(pathInfo.dir);
+    throw new Error('The argument "pathToFile" was expected to be type "Array<String>".');
   }
 
   const readable = _fs.default.createReadStream(pathToFile);
@@ -42,16 +39,13 @@ var _default = (pathToFile, method) => {
     flags: 'w'
   });
 
-  switch (method) {
-    case _configuratorMethods.ADD_TO_SIDEBAR:
-      readable.pipe(new _Transformer.default(addToObject, {
-        prop: 'sidebar',
-        data: pathInfo.name
-      })).pipe(writable);
-
-    default:
-      throw new Error('Unknown transform method in Transformer!');
-  }
+  readable.on('error', err => {
+    throw new Error(err);
+  });
+  writable.on('error', err => {
+    throw new Error(err);
+  });
+  readable.pipe(new _Transformer.default(_addDataToObject.default, pathInfo.name)).pipe(writable);
 };
 
 exports.default = _default;

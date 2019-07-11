@@ -6,53 +6,35 @@ import requiredArg from './requiredArg'
 import checkPathToExist from './checkPathToExist'
 import arrayPathToString from './arrayPathToString'
 
-const createFolderByStringPath = (pathToFolder = requireArg('pathToFolder')) =>
-	new Promise((resolve, reject) => {
-		try {
-			if (!fs.existsSync(pathToFolder)) {
-				fs.mkdirSync(pathToFolder, { recursive: true })
-			}
-			resolve(pathToFolder)
-		} catch (err) {
-			reject(err)
+export const createFolder = (pathToFolder = requireArg('pathToFolder')) => {
+	let outputPath
+
+	if (!checkPathToExist(pathToFolder)) {
+		if (typeof pathToFolder === 'string') {
+			fs.mkdirSync(pathToFolder, { recursive: true })
+			outputPath = pathToFolder
+		} else {
+			throw new Error('Expected string argument')
 		}
-	})
-
-export const createFolder = (pathToFolder = requireArg('pathToFolder')) =>
-	new Promise((resolve, reject) => {
-		let outputPath
-
-		if (!checkPathToExist(pathToFolder)) {
-			outputPath = createFolderByStringPath(pathToFolder)
-		}
-
-		if (outputPath && checkPathToExist(outputPath)) resolve(true)
-		// ToDo: change it
-		else reject(`Unknown error! ${outputPath} not created`)
-	})
+	} else {
+		outputPath = pathToFolder
+	}
+	return outputPath
+}
 
 export const createFile = (
 	pathToFolder = requireArg('pathToFolder'),
 	filename = requireArg('filename'),
 	fileSource = requireArg('fileSource')
-) =>
-	new Promise((resolve, reject) => {
+) => {
 		let outputPath
+		const pathToFile = `${pathToFolder}/${filename}`
+		if (checkPathToExist(pathToFolder) && typeof pathToFile === 'string') {
+			outputPath = path.parse(pathToFile)
+		} else {
+			throw new Error('Path not exist or expected string argument')
+		}
 
-		!checkPathToExist(pathToFolder) && createFolderByStringPath(pathToFolder)
-		outputPath = path.resolve(pathToFolder, filename)
-
-		if (checkPathToExist(outputPath)) resolve(true) // ToDo: change it
-
-		const writable = fs.createWriteStream(outputPath, {
-			flags: 'w',
-		})
-
-		writable.write(fileSource)
-
-		writable.on('error', err => {
-			reject(new Error(err)) // ToDo: change it
-		})
-		writable.end()
-		resolve(true) // ToDo: change it
-	})
+		fs.writeFileSync(`${outputPath.dir}/${outputPath.base}`, fileSource)
+		return outputPath
+	}
