@@ -6,7 +6,7 @@ describe('CJS', () => {
 		expect(CJSLoader).toEqual(loader)
 	})
 
-	test('should export `raw` flag', () => {
-		expect(CJSLoader.raw).toEqual(true)
-	})
+	it('should export `raw` flag', () => {
+		expect(CJSLoader.raw).toEqual(true);
+	});
 })

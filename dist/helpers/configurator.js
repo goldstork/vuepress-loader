@@ -9,43 +9,93 @@ var _fs = _interopRequireDefault(require("fs"));
 
 var _path = _interopRequireDefault(require("path"));
 
-var _checkPathToExist = _interopRequireDefault(require("./checkPathToExist"));
+var _string_decoder = require("string_decoder");
 
-var _creator = require("./creator");
-
-var _Transformer = _interopRequireDefault(require("./Transformer"));
+var _logger = _interopRequireDefault(require("../utils/logger"));
 
 var _arrayPathToString = _interopRequireDefault(require("./arrayPathToString"));
 
-var _addDataToObject = _interopRequireDefault(require("./addDataToObject"));
-
-var _stream = require("stream");
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var _default = async pathToFile => {
-  let pathInfo;
+const decoder = new _string_decoder.StringDecoder('utf-8');
 
-  if (Array.isArray(pathToFile)) {
-    pathToFile = (0, _arrayPathToString.default)(pathToFile);
-    pathInfo = _path.default.parse(pathToFile);
-  } else {
-    throw new Error('The argument "pathToFile" was expected to be type "Array<String>".');
+class Configurator {
+  constructor(inputPathToFile) {
+    this.inputPathToFile = null;
+    this.configContent = null;
+    this.fileInfo = null;
   }
 
-  const readable = _fs.default.createReadStream(pathToFile);
+  get config() {
+    let config = this.configContent ? decoder.write(this.configContent) : null;
+    return JSON.parse(config);
+  }
 
-  const writable = _fs.default.createWriteStream(pathToFile, {
-    flags: 'w'
-  });
+  get configBuffer() {
+    return this.configContent;
+  }
 
-  readable.on('error', err => {
-    throw new Error(err);
-  });
-  writable.on('error', err => {
-    throw new Error(err);
-  });
-  readable.pipe(new _Transformer.default(_addDataToObject.default, pathInfo.name)).pipe(writable);
-};
+  reset() {
+    this.inputPathToFile = null;
+    this.configContent = null;
+    this.fileInfo = null;
+  }
 
+  edit(fn) {
+    if (this.outputPathToFile === null || this.configContent === null) throw new Error('First you need to read the file using the Configurator.read() methods.');
+    let config = decoder.write(this.configContent);
+    config = fn(JSON.parse(config));
+
+    if (config && config.constructor === Object) {
+      this.configContent = Buffer.from(JSON.stringify(config));
+      return this;
+    } else {
+      const err = new Error('Action should return the modified content of the config type Object!');
+
+      _logger.default.fatal(err);
+
+      throw err;
+    }
+  }
+
+  read(inputPathToFile) {
+    try {
+      this.inputPathToFile = inputPathToFile;
+
+      if (Array.isArray(inputPathToFile)) {
+        this.inputPathToFile = (0, _arrayPathToString.default)(inputPathToFile);
+      }
+
+      this.fileInfo = _path.default.parse(this.inputPathToFile);
+      this.configContent = _fs.default.readFileSync(this.inputPathToFile);
+
+      _logger.default.success(`File «${this.fileInfo.base}» read successfully!`);
+
+      return this;
+    } catch (err) {
+      _logger.default.fatal(new Error(err));
+    }
+  }
+
+  write(outputPathToFile) {
+    if (this.configContent === null) throw new Error('First you need to read the file using the Configurator.read() methods.');
+
+    try {
+      if (Array.isArray(outputPathToFile)) {
+        outputPathToFile = (0, _arrayPathToString.default)(outputPathToFile);
+      }
+
+      _fs.default.writeFileSync(outputPathToFile, this.configContent);
+
+      _logger.default.success(`File «${this.fileInfo.base}» was written successfully!`);
+
+      return this;
+    } catch (err) {
+      _logger.default.fatal(new Error(err));
+    }
+  }
+
+}
+
+var _default = Configurator;
 exports.default = _default;

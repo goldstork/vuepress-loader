@@ -4,6 +4,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = loader;
+exports.raw = void 0;
 
 var _stream = _interopRequireDefault(require("stream"));
 
@@ -17,21 +18,23 @@ var _loaderUtils = _interopRequireDefault(require("loader-utils"));
 
 var _schemaUtils = _interopRequireDefault(require("schema-utils"));
 
+var _logger = _interopRequireDefault(require("./utils/logger.js"));
+
 var _options = _interopRequireDefault(require("./options.json"));
 
 var _vuepressConfig = _interopRequireDefault(require("./data/vuepressConfig.json"));
 
 var _creator = require("./helpers/creator");
 
-var _configurator = _interopRequireDefault(require("./helpers/configurator"));
-
 var _checkPathToExist = _interopRequireDefault(require("./helpers/checkPathToExist"));
+
+var _configurator = _interopRequireDefault(require("./helpers/configurator.js"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 const config = `
-import config from './config.json'
-module.exports = config
+const config = require('./config.json');
+module.exports = config;
 `;
 const ReadmeFile = `
 ---
@@ -46,6 +49,7 @@ details: This entire doc was basically made with VuePress which parsed markdown 
 footer: TEST IERomanov TEST
 ---`;
 const appRootPath = process.cwd();
+let configurator = new _configurator.default();
 
 async function loader(source) {
   try {
@@ -56,22 +60,39 @@ async function loader(source) {
       context
     });
 
-    (0, _schemaUtils.default)(_options.default, options, 'VuePress Loader');
-    await Promise.all([// Create root docs folder
-    (0, _creator.createFolder)(options.outputPath), // Create folder for components
-    (0, _creator.createFolder)(`${options.outputPath}/components`), // Create .vuepress folder for config
-    (0, _creator.createFolder)(`${options.outputPath}/.vuepress`), // Create default config files
-    (0, _creator.createFile)(options.outputPath, 'README.md', ReadmeFile), (0, _creator.createFile)(`${options.outputPath}/.vuepress`, 'config.js', config), (0, _creator.createFile)(`${options.outputPath}/.vuepress`, 'config.json', _vuepressConfig.default)]); // const componentData = await parse({ filecontent: source.toString('utf8') })
-    // Gen and update default config
+    (0, _schemaUtils.default)(_options.default, options, 'VuePress Loader'); // Create root docs folder
 
-    (0, _configurator.default)([options.outputPath, '.vuepress', 'config.js']); // await createFile(
-    // 	[options.outputPath, 'components'],
-    // 	fileName,
-    // 	JSON.stringify(componentData, null, 4)
-    // )
+    (0, _creator.createFolder)(options.outputPath); // Create folder for components
+
+    (0, _creator.createFolder)(`${options.outputPath}/components`); // Create .vuepress folder for config
+
+    (0, _creator.createFolder)(`${options.outputPath}/.vuepress`); // Create default config files
+
+    (0, _creator.createFile)(options.outputPath, 'README.md', ReadmeFile);
+    (0, _creator.createFile)(`${options.outputPath}/.vuepress`, 'config.js', config);
+    (0, _creator.createFile)(`${options.outputPath}/.vuepress`, 'config.json', JSON.stringify(_vuepressConfig.default, null, 4));
+    const componentData = await (0, _parser.parse)({
+      filecontent: source.toString('utf8')
+    });
+
+    if (!configurator.config) {
+      configurator.read([options.outputPath, '.vuepress', 'config.json']);
+    }
+
+    configurator.edit(config => {
+      config.themeConfig.sidebar.push(fileName);
+      return config;
+    }); // Create markdown file for component
+
+    (0, _creator.createFile)(`${options.outputPath}/components`, fileName, JSON.stringify(componentData, null, 4));
   } catch (err) {
     process.stdout.cursorTo(0);
-    console.error('\nError: ', err);
+
+    _logger.default.error(err);
+
     process.exit(1);
   }
 }
+
+const raw = true;
+exports.raw = raw;

@@ -31,12 +31,14 @@
     "husky": "^2.4.1",
     "jest": "^24.8.0",
     "memory-fs": "^0.4.1",
+    "rimraf": "^2.6.3",
     "stream-mock": "^2.0.5",
     "webpack": "^4.35.0"
   },
   "dependencies": {
     "@vuedoc/parser": "^2.0.0-beta.4",
     "loader-utils": "^1.2.3",
-    "schema-utils": "^1.0.0"
+    "schema-utils": "^1.0.0",
+    "signale": "^1.4.0"
   }
 }

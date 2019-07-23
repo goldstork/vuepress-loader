@@ -1,8 +1,7 @@
 {
-	"title": "Test VuePress Docs generation",
+	"title": "VuePress Docs generation",
 	"description": "TryTryTryTryTryTryTry",
 	"themeConfig":{
-		"logo": "/assets/img/logo.png",
 		"nav": [
 			{ 
 				"text": "Components",

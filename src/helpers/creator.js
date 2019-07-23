@@ -2,11 +2,10 @@ import stream from 'stream'
 import fs from 'fs'
 import path from 'path'
 
-import requiredArg from './requiredArg'
 import checkPathToExist from './checkPathToExist'
 import arrayPathToString from './arrayPathToString'
 
-export const createFolder = (pathToFolder = requireArg('pathToFolder')) => {
+const createFolder = pathToFolder => {
 	let outputPath
 
 	if (!checkPathToExist(pathToFolder)) {
@@ -22,19 +21,18 @@ export const createFolder = (pathToFolder = requireArg('pathToFolder')) => {
 	return outputPath
 }
 
-export const createFile = (
-	pathToFolder = requireArg('pathToFolder'),
-	filename = requireArg('filename'),
-	fileSource = requireArg('fileSource')
-) => {
-		let outputPath
-		const pathToFile = `${pathToFolder}/${filename}`
-		if (checkPathToExist(pathToFolder) && typeof pathToFile === 'string') {
-			outputPath = path.parse(pathToFile)
-		} else {
-			throw new Error('Path not exist or expected string argument')
-		}
+const createFile = (pathToFolder, filename, fileSource) => {
+	let outputPath
+	const pathToFile = `${pathToFolder}/${filename}`
 
-		fs.writeFileSync(`${outputPath.dir}/${outputPath.base}`, fileSource)
-		return outputPath
+	if (typeof pathToFile === 'string' && checkPathToExist(pathToFolder)) {
+		outputPath = path.parse(pathToFile)
+	} else {
+		throw new Error('Path not exist or expected string argument')
 	}
+
+	fs.writeFileSync(`${outputPath.dir}/${outputPath.base}`, fileSource)
+	return outputPath
+}
+
+export { createFile, createFolder }

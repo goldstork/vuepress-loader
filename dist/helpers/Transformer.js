@@ -5,40 +5,35 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-const {
-  Transform
-} = require('stream');
+var _stream = require("stream");
 
-const {
-  StringDecoder
-} = require('string_decoder');
+var _logger = _interopRequireDefault(require("../utils/logger"));
 
-class Transformer extends Transform {
-  constructor(concurrency, transformer, transformerArgs, opt = {}) {
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+class Transformer extends _stream.Transform {
+  constructor(concurrency, {
+    handler,
+    args
+  }, opt = {}) {
     super(opt);
-    this.transformer = transformer;
-    this.transformerArgs = transformerArgs;
+    this.transformer = handler;
+    this.transformerArgs = args;
     this.running = 0;
     this.terminateCallback = null;
     this.concurrency = concurrency;
-    this.continueCallback = null;
-    this.on('close', () => {
-      console.log('\n------ Transform on close ------\n');
-    });
-    this.on('drain', () => {
-      console.log('\n------ Transform on drain ------\n');
-    });
+    this.continueCallback = null; // this.on('close', () => {
+    // 	logger.info('Transform on close')
+    // })
+
     this.on('error', err => {
-      console.log('\n------ Transform on error ------\n', err);
-    });
-    this.on('finish', () => {
-      console.log('\n------ Transform on finish ------\n');
-    });
+      _logger.default.fatal(new Error(err));
+    }); // this.on('finish', () => {
+    // 	logger.info('Transform on finish')
+    // })
+
     this.on('end', () => {
-      console.log('\n------ Transform on end ------\n');
-    });
-    this.on('pipe', () => {
-      console.log('\n------ Transform on pipe ------\n');
+      _logger.default.success('Transform file successfully!');
     });
   }
 
@@ -46,7 +41,7 @@ class Transformer extends Transform {
     this.running++;
 
     try {
-      source = this.transformer(chunk, encoding, this._onComplete.bind(this), ...this.transformerArgs);
+      source = this.transformer(chunk, encoding, this._onComplete.bind(this), this.transformerArgs);
 
       if (this.running < this.concurrency) {
         done(null, source);

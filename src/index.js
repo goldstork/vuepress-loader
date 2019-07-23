@@ -6,17 +6,18 @@ import { parse } from '@vuedoc/parser'
 import loaderUtils from 'loader-utils'
 import validateOptions from 'schema-utils'
 
+import logger from './utils/logger.js'
+
 import schema from './options.json'
 import defaultConfig from './data/vuepressConfig.json'
 
 import { createFile, createFolder } from './helpers/creator'
-import Configurator from './helpers/configurator'
 import checkPathToExist from './helpers/checkPathToExist'
-import configurator from './helpers/configurator'
+import Configurator from './helpers/configurator.js';
 
 const config = `
-import config from './config.json'
-module.exports = config
+const config = require('./config.json');
+module.exports = config;
 `
 
 const ReadmeFile = `
@@ -33,8 +34,7 @@ footer: TEST IERomanov TEST
 ---`
 
 const appRootPath = process.cwd()
-
-const Tra
+let configurator = new Configurator()
 
 export default async function loader(source) {
 	try {
@@ -44,33 +44,35 @@ export default async function loader(source) {
 
 		validateOptions(schema, options, 'VuePress Loader')
 
-		await Promise.all([
-			// Create root docs folder
-			createFolder(options.outputPath),
-			// Create folder for components
-			createFolder(`${options.outputPath}/components`),
-			// Create .vuepress folder for config
-			createFolder(`${options.outputPath}/.vuepress`),
+		// Create root docs folder
+		createFolder(options.outputPath)
+		// Create folder for components
+		createFolder(`${options.outputPath}/components`)
+		// Create .vuepress folder for config
+		createFolder(`${options.outputPath}/.vuepress`)
 
-			// Create default config files
-			createFile(options.outputPath, 'README.md', ReadmeFile),
-			createFile(`${options.outputPath}/.vuepress`, 'config.js', config),
-			createFile(`${options.outputPath}/.vuepress`, 'config.json', defaultConfig),
-		])
+		// Create default config files
+		createFile(options.outputPath, 'README.md', ReadmeFile)
+		createFile(`${options.outputPath}/.vuepress`, 'config.js', config)
+		createFile(`${options.outputPath}/.vuepress`, 'config.json', JSON.stringify(defaultConfig, null, 4))
 
-		// const componentData = await parse({ filecontent: source.toString('utf8') })
+		const componentData = await parse({ filecontent: source.toString('utf8') })
+		
+		if (!configurator.config) {
+			configurator.read([options.outputPath, '.vuepress', 'config.json'])
+		}
+		configurator.edit(config => {
+			config.themeConfig.sidebar.push(fileName)
+			return config
+		})
 
-		// Gen and update default config
-		configurator([options.outputPath, '.vuepress', 'config.js'])
-
-		// await createFile(
-		// 	[options.outputPath, 'components'],
-		// 	fileName,
-		// 	JSON.stringify(componentData, null, 4)
-		// )
+		// Create markdown file for component
+		createFile(`${options.outputPath}/components`, fileName, JSON.stringify(componentData, null, 4))
 	} catch (err) {
 		process.stdout.cursorTo(0)
-		console.error('\nError: ', err)
+		logger.error(err)
 		process.exit(1)
 	}
 }
+
+export const raw = true
