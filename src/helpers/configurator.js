@@ -9,35 +9,23 @@ import arrayPathToString from './arrayPathToString'
 const decoder = new StringDecoder('utf-8')
 
 class Configurator {
-	constructor(inputPathToFile) {
-		this.inputPathToFile = null
-		this.configContent = null
-		this.fileInfo = null
+	constructor(initialConfig = {}) {
+		this.configContent = initialConfig
 	}
 
 	get config() {
-		let config = this.configContent ? decoder.write(this.configContent) : null
-		return JSON.parse(config)
-	}
-
-	get configBuffer() {
 		return this.configContent
 	}
 
 	reset() {
-		this.inputPathToFile = null
-		this.configContent = null
-		this.fileInfo = null
+		this.configContent = {}
 	}
 
 	edit(fn) {
-		if (this.outputPathToFile === null || this.configContent === null) throw new Error('First you need to read the file using the Configurator.read() methods.')
-		let config = decoder.write(this.configContent)
-
-		config = fn(JSON.parse(config))
-
+		let config = JSON.parse(JSON.stringify(this.configContent)) // Create new nested object
+		config = fn(config)
 		if (config && config.constructor === Object) {
-			this.configContent = Buffer.from(JSON.stringify(config))
+			this.configContent = config
 			return this
 		} else {
 			const err = new Error('Action should return the modified content of the config type Object!')
@@ -47,32 +35,31 @@ class Configurator {
 	}
 
 	read(inputPathToFile) {
-		try {
-			this.inputPathToFile = inputPathToFile
-			if (Array.isArray(inputPathToFile)) {
-				this.inputPathToFile = arrayPathToString(inputPathToFile)
-			}
-			this.fileInfo = path.parse(this.inputPathToFile)
-			this.configContent = fs.readFileSync(this.inputPathToFile)
-			logger.success(`File «${this.fileInfo.base}» read successfully!`)
-			return this
-		} catch (err) {
-			logger.fatal(new Error(err))
+		if (Array.isArray(inputPathToFile)) {
+			inputPathToFile = arrayPathToString(inputPathToFile)
 		}
+		const fileInfo = path.parse(inputPathToFile)
+		if (fileInfo.ext !== '.json') {
+			throw new Error('Can read only .json format')
+		}
+		const bufferConfig = fs.readFileSync(inputPathToFile)
+		this.configContent = JSON.parse(decoder.write(bufferConfig))
+		logger.success(`File «${fileInfo.base}» read successfully!`)
+		return this
 	}
 
 	write(outputPathToFile) {
-		if (this.configContent === null) throw new Error('First you need to read the file using the Configurator.read() methods.')
-		try {
-			if (Array.isArray(outputPathToFile)) {
-				outputPathToFile = arrayPathToString(outputPathToFile)
-			}
-			fs.writeFileSync(outputPathToFile, this.configContent)
-			logger.success(`File «${this.fileInfo.base}» was written successfully!`)
-			return this
-		} catch (err) {
-			logger.fatal(new Error(err))
+		if (Object.entries(this.configContent).length === 0) throw new Error('First you need to read the file using the Configurator.read() methods. OR pass initial config in constructor')
+		if (Array.isArray(outputPathToFile)) {
+			outputPathToFile = arrayPathToString(outputPathToFile)
 		}
+		const fileInfo = path.parse(outputPathToFile)
+		if (fileInfo.ext !== '.json') {
+			throw new Error('Can read only .json format')
+		}
+		fs.writeFileSync(outputPathToFile, this.configContent)
+		logger.success(`File «${fileInfo.base}» was written successfully!`)
+		return this
 	}
 }
 

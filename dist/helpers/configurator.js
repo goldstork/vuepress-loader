@@ -20,34 +20,25 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 const decoder = new _string_decoder.StringDecoder('utf-8');
 
 class Configurator {
-  constructor(inputPathToFile) {
-    this.inputPathToFile = null;
-    this.configContent = null;
-    this.fileInfo = null;
+  constructor(initialConfig = {}) {
+    this.configContent = initialConfig;
   }
 
   get config() {
-    let config = this.configContent ? decoder.write(this.configContent) : null;
-    return JSON.parse(config);
-  }
-
-  get configBuffer() {
     return this.configContent;
   }
 
   reset() {
-    this.inputPathToFile = null;
-    this.configContent = null;
-    this.fileInfo = null;
+    this.configContent = {};
   }
 
   edit(fn) {
-    if (this.outputPathToFile === null || this.configContent === null) throw new Error('First you need to read the file using the Configurator.read() methods.');
-    let config = decoder.write(this.configContent);
-    config = fn(JSON.parse(config));
+    let config = JSON.parse(JSON.stringify(this.configContent)); // Create new nested object
+
+    config = fn(config);
 
     if (config && config.constructor === Object) {
-      this.configContent = Buffer.from(JSON.stringify(config));
+      this.configContent = config;
       return this;
     } else {
       const err = new Error('Action should return the modified content of the config type Object!');
@@ -59,40 +50,43 @@ class Configurator {
   }
 
   read(inputPathToFile) {
-    try {
-      this.inputPathToFile = inputPathToFile;
-
-      if (Array.isArray(inputPathToFile)) {
-        this.inputPathToFile = (0, _arrayPathToString.default)(inputPathToFile);
-      }
-
-      this.fileInfo = _path.default.parse(this.inputPathToFile);
-      this.configContent = _fs.default.readFileSync(this.inputPathToFile);
-
-      _logger.default.success(`File «${this.fileInfo.base}» read successfully!`);
-
-      return this;
-    } catch (err) {
-      _logger.default.fatal(new Error(err));
+    if (Array.isArray(inputPathToFile)) {
+      inputPathToFile = (0, _arrayPathToString.default)(inputPathToFile);
     }
+
+    const fileInfo = _path.default.parse(inputPathToFile);
+
+    if (fileInfo.ext !== '.json') {
+      throw new Error('Can read only .json format');
+    }
+
+    const bufferConfig = _fs.default.readFileSync(inputPathToFile);
+
+    this.configContent = JSON.parse(decoder.write(bufferConfig));
+
+    _logger.default.success(`File «${fileInfo.base}» read successfully!`);
+
+    return this;
   }
 
   write(outputPathToFile) {
-    if (this.configContent === null) throw new Error('First you need to read the file using the Configurator.read() methods.');
+    if (Object.entries(this.configContent).length === 0) throw new Error('First you need to read the file using the Configurator.read() methods. OR pass initial config in constructor');
 
-    try {
-      if (Array.isArray(outputPathToFile)) {
-        outputPathToFile = (0, _arrayPathToString.default)(outputPathToFile);
-      }
-
-      _fs.default.writeFileSync(outputPathToFile, this.configContent);
-
-      _logger.default.success(`File «${this.fileInfo.base}» was written successfully!`);
-
-      return this;
-    } catch (err) {
-      _logger.default.fatal(new Error(err));
+    if (Array.isArray(outputPathToFile)) {
+      outputPathToFile = (0, _arrayPathToString.default)(outputPathToFile);
     }
+
+    const fileInfo = _path.default.parse(outputPathToFile);
+
+    if (fileInfo.ext !== '.json') {
+      throw new Error('Can read only .json format');
+    }
+
+    _fs.default.writeFileSync(outputPathToFile, this.configContent);
+
+    _logger.default.success(`File «${fileInfo.base}» was written successfully!`);
+
+    return this;
   }
 
 }

@@ -5,22 +5,50 @@ import rimraf from 'rimraf'
 import Configurator from '../src/helpers/configurator'
 
 import { pathToTMPFolder, pathToConfig, configName } from './constants/ways'
-const outputPath = `${pathToTMPFolder}/${configName}`
 
-const configurator = new Configurator()
+import demoConfig from './data/config.json'
+
+const outputPath = `${pathToTMPFolder}/${configName}`
+const initConfig = {
+	name: 'name',
+	age: 12,
+	work: true,
+	broken: false,
+	obj: {
+		one: 1,
+		two: 2
+	}
+}
+const configurator = new Configurator(initConfig)
 
 describe('Configurator', () => {
 	test('should Configurator instance of Configurator', () => {
 		expect(configurator).toBeInstanceOf(Configurator)
 	})
 
-	test('should get config data after read json file', () => {
-		expect(configurator.configBuffer).toStrictEqual(fs.readFileSync(pathToConfig))
+	test('should config equal initial config', () => {
+		expect(configurator.config).toStrictEqual(initConfig)
 	})
 
-	test('should read and Write json file', () => {
+	test('should read only .json format', () => {
+		const err = () => configurator.read(path.resolve(__dirname, '../data/config.js'))
+		expect(err).toThrow()
+	})
+
+	test('should get config data after read json file', () => {
+		configurator.read(pathToConfig)
+		expect(configurator.config).toStrictEqual(demoConfig)
+	})
+
+	test('should write file', () => {
 		configurator.write(outputPath)
 		expect(fs.existsSync(outputPath)).toEqual(true)
+	})
+
+	
+	test('should write only .json format', () => {
+		const err = () => configurator.write(path.resolve(__dirname, '../__tmp__/config.js'))
+		expect(err).toThrow()
 	})
 
 	test('should config be edited', () => {
@@ -44,16 +72,12 @@ describe('Configurator', () => {
 
 	test('should reset data configurator', () => {
 		configurator.reset()
-		expect(configurator.config).toEqual(null)
+		expect(configurator.config).toStrictEqual({})
 	})
 })
 
 beforeAll(() => {
 	!fs.existsSync(pathToTMPFolder) && fs.mkdirSync(pathToTMPFolder)
-})
-
-beforeEach(() => {
-	configurator.read(pathToConfig)
 })
 
 afterAll(() => {
