@@ -40,7 +40,7 @@ describe('Creator', () => {
 })
 
 beforeAll(() => {
-	fs.mkdirSync(pathToTMPFolder)
+	!fs.existsSync(pathToTMPFolder) && fs.mkdirSync(pathToTMPFolder)
 })
 
 afterAll(() => {

@@ -49,7 +49,7 @@ describe('Configurator', () => {
 })
 
 beforeAll(() => {
-	fs.mkdirSync(pathToTMPFolder)
+	!fs.existsSync(pathToTMPFolder) && fs.mkdirSync(pathToTMPFolder)
 })
 
 beforeEach(() => {
